@@ -12,6 +12,10 @@ const auctionSchema = new mongoose.Schema({
     default: 100, // výchozí minimální příhoz
   },
   image: String,
+  endDate: {
+    type: Date,
+    required: false, // nebo true, pokud bude vždy povinné
+  },
 });
 
 export default mongoose.model("Auction", auctionSchema);

@@ -2,7 +2,8 @@ import Auction from "../models/Auction.js";
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
 import bcrypt from "bcryptjs";
-
+import fs from "fs";
+import path from "path";
 // Nastavení trvání aukce (volá superadmin)
 export const setAuctionDuration = async (req, res) => {
   const io = req.io;
@@ -10,19 +11,25 @@ export const setAuctionDuration = async (req, res) => {
     const { endDate } = req.body;
 
     if (!endDate || isNaN(Date.parse(endDate))) {
-      return res.status(400).json({ error: "Neplatná délka trvání aukce." });
+      return res.status(400).json({ error: "Neplatné datum ukončení aukce." });
     }
 
-    const start = new Date();
     const end = new Date(endDate);
+    const now = new Date();
+
+    if (end <= now) {
+      return res
+        .status(400)
+        .json({ error: "Datum ukončení aukce musí být v budoucnosti." });
+    }
 
     const auction = await Auction.findOneAndUpdate(
       {},
-      { startDate: start, endDate: end },
+      { endDate: end },
       { upsert: true, new: true }
     );
 
-    io.emit("auction:current", auction); // Oznámení všem klientům
+    io.emit("auction:current", auction); // Notifikace klientům
     res.json(auction);
   } catch (err) {
     res.status(500).json({
@@ -31,6 +38,7 @@ export const setAuctionDuration = async (req, res) => {
     });
   }
 };
+
   
 
 // REST endpoint pro získání aukce přes HTTP
@@ -59,7 +67,7 @@ export const register = async (req, res) => {
 };
 
 export const adminCreateUser = async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password, role, userId } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = new User({ username, password: hashedPassword, role });
   await user.save();
@@ -138,6 +146,8 @@ export const deleteBidById = async (req, res) => {
   }
 };
 // Nahrání obrázku pro aukci
+
+
 export const uploadAuctionImage = async (req, res) => {
   try {
     const file = req.file;
@@ -145,6 +155,23 @@ export const uploadAuctionImage = async (req, res) => {
       return res.status(400).json({ error: "Obrázek nebyl nahrán." });
     }
 
+    // cesta k upload složce
+    const uploadDir = path.join(process.cwd(), "uploads");
+
+    // smažeme všechny soubory kromě právě nahraného
+    const files = fs.readdirSync(uploadDir);
+    for (const f of files) {
+      if (f !== file.filename) {
+        const filePath = path.join(uploadDir, f);
+        try {
+          fs.unlinkSync(filePath);
+        } catch (err) {
+          console.warn("Nepodařilo se smazat soubor:", filePath, err);
+        }
+      }
+    }
+
+    // Uložíme URL obrázku do DB (pokud máš takovou logiku)
     const auction = await Auction.findOneAndUpdate(
       {},
       { image: `/uploads/${file.filename}` },
@@ -152,11 +179,14 @@ export const uploadAuctionImage = async (req, res) => {
     );
 
     req.io.emit("auction:image", auction.image);
+
     res.json({ message: "Obrázek byl uložen", image: auction.image });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Chyba při ukládání obrázku." });
   }
 };
+
 
 // Získání obrázku aukce
 export const getAuctionImage = async (req, res) => {

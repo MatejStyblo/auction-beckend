@@ -1,5 +1,12 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+const uploadDir = path.join(process.cwd(), "uploads");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
 
 // Nastavení úložiště pro obrázky
 const storage = multer.diskStorage({

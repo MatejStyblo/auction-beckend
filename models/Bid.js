@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 const bidSchema = new mongoose.Schema({
   amount: Number,
   time: Date,
-  name: String
+  name: String,
+  userId: Number
 });
 
 export default mongoose.model("Bid", bidSchema);

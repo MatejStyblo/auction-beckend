@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, userId } = req.body;
 
   const user = await User.findOne({ username });
   if (!user) return res.status(401).json({ error: "Špatné údaje" });
