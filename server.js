@@ -23,7 +23,7 @@ mongoose
   })
   .then(async () => {
     console.log("MongoDB connected");
-    await createSuperAdmin(); // vytvořit admina až po připojení
+    await createSuperAdmin();
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 
