@@ -1,7 +1,7 @@
 import Auction from "../models/Auction.js";
 import User from "../models/User.js";
 import Bid from "../models/Bid.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import fs from "fs";
 import path from "path";
 // Nastavení trvání aukce (volá superadmin)

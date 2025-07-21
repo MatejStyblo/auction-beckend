@@ -8,14 +8,12 @@ export const getBids = async (req, res) => {
     res.json(bids);
 };
 
-// GET aktuální cenu
 export const getPrice = async (req, res) => {
     const auction = await Auction.findOne();
     if (!auction) return res.json({ price: 0 });
     res.json({ price: auction.price });
   };
   
-  // POST - ruční změna ceny
   export const setPrice = async (req, res) => {
     const { price } = req.body;
     if (typeof price !== "number" || price < 0) {
@@ -31,13 +29,11 @@ export const getPrice = async (req, res) => {
 
     await auction.save();
 
-    req.io.emit("price-updated", auction.price); // <---- přidáno
+    req.io.emit("price-updated", auction.price);
 
     res.json({ success: true, price: auction.price });
   };
   
-  // POST - nový příhoz
-  // POST - nový příhoz
   export const createBid = async (req, res) => {
     const username = req.user?.username;
     if (!username) {
@@ -49,7 +45,7 @@ export const getPrice = async (req, res) => {
       return res.status(404).json({ error: "Uživatel nenalezen" });
     }
 
-    const { amount } = req.body; // amount = příhoz
+    const { amount } = req.body; 
     if (typeof amount !== "number" || amount <= 0) {
       return res.status(400).json({ error: "Neplatná částka" });
     }
@@ -60,23 +56,22 @@ export const getPrice = async (req, res) => {
     }
 
     const now = moment();
-    const endDate = new Date(auction.endDate);
+    const endDate = auction.endDate ? new Date(auction.endDate) : null;
     if (now > endDate) {
       return res
         .status(400)
         .json({ error: "Aukce již skončila, nelze přihodit." });
     }
 
-    const { price, minimumBid } = auction; // např. price=10000, minimumBid=5000
+    const { price, minimumBid } = auction; 
 
-    // Kontrola příhozu
     if (amount < minimumBid) {
       return res.status(400).json({
         error: `Příhoz musí být alespoň ${minimumBid} Kč.`,
       });
     }
 
-    const newPrice = price + amount; // např. 10000 + 5000 = 15000
+    const newPrice = price + amount;
     auction.price = newPrice;
 
     const currentEnd = moment(auction.endDate);
@@ -91,7 +86,7 @@ export const getPrice = async (req, res) => {
     await auction.save();
 
     const bid = new Bid({
-      amount: newPrice, // můžeš uložit novou cenu, nebo pokud chceš příhoz, přidej další pole
+      amount: newPrice,
       time: new Date(),
       name: user.username,
       userId: user.userId,

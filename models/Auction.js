@@ -9,12 +9,12 @@ const auctionSchema = new mongoose.Schema({
   minimumBid: {
     type: Number,
     required: true,
-    default: 100, // výchozí minimální příhoz
+    default: 100, 
   },
   image: String,
   endDate: {
     type: Date,
-    required: false, // nebo true, pokud bude vždy povinné
+    required: false,
   },
 });
 

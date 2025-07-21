@@ -1,5 +1,5 @@
 import User from "../models/User.js";
-import bcrypt from "bcryptjs"; // nebo bcrypt, pokud používáš originální
+import bcrypt from "bcrypt";
 
 const createSuperAdmin = async () => {
   try {
